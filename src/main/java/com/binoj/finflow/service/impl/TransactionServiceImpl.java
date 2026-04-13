@@ -3,6 +3,7 @@ package com.binoj.finflow.service.impl;
 import com.binoj.finflow.dto.TransferRequest;
 import com.binoj.finflow.entity.Account;
 import com.binoj.finflow.entity.Transaction;
+import com.binoj.finflow.exception.BadRequestException;
 import com.binoj.finflow.repository.AccountRepository;
 import com.binoj.finflow.repository.TransactionRepository;
 import com.binoj.finflow.service.TransactionService;
@@ -43,7 +44,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (sender.getBalance().compareTo(amount) < 0) {
             log.warn("Insufficient balance for sender {}", senderId);
-            throw new RuntimeException("Insufficient balance");
+            throw new BadRequestException("Insufficient balance");
         }
 
         sender.setBalance(sender.getBalance().subtract(amount));

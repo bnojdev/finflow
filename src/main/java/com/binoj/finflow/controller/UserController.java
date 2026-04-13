@@ -1,9 +1,12 @@
 package com.binoj.finflow.controller;
 
+import com.binoj.finflow.dto.ApiResponse;
 import com.binoj.finflow.entity.User;
 import com.binoj.finflow.service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -17,10 +20,14 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
-    public String registerUser(@Valid @RequestBody User user) {
+    @PostMapping(value = "/register", consumes = "application/json")
+    public ResponseEntity<ApiResponse<?>> registerUser(@Valid @RequestBody User user) {
         log.info("Registration request for user with mobile {}", user.getMobile());
-        return userService.register(user);
+        String msg = userService.register(user);
+        return new ResponseEntity<>(
+                new ApiResponse<>(201, msg, null),
+                HttpStatus.CREATED
+        );
     }
 
     @PostMapping("/verify-otp")
@@ -31,8 +38,11 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String mobile) {
+    public  ResponseEntity<ApiResponse<?>> login(@RequestParam String mobile) {
         log.info("Login request for mobile {}", mobile);
-        return userService.login(mobile);
+        String token = userService.login(mobile);
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, "Login successful", token)
+        );
     }
 }

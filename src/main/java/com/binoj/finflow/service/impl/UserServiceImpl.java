@@ -3,6 +3,7 @@ package com.binoj.finflow.service.impl;
 import com.binoj.finflow.entity.Account;
 import com.binoj.finflow.entity.User;
 import com.binoj.finflow.entity.UserStatus;
+import com.binoj.finflow.exception.ResourceNotFoundException;
 import com.binoj.finflow.repository.AccountRepository;
 import com.binoj.finflow.repository.UserRepository;
 import com.binoj.finflow.service.UserService;
@@ -48,7 +49,7 @@ public class UserServiceImpl implements UserService {
         log.info("Verifying OTP for mobile: {}", mobile);
 
         User user = userRepository.findByMobile(mobile)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         log.info("User found for mobile: {}", mobile);
 
         if (!user.getOtp().equals(otp)) {
@@ -79,7 +80,7 @@ public class UserServiceImpl implements UserService {
         log.info("Login attempt for mobile: {}", mobile);
 
         User user = userRepository.findByMobile(mobile)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         log.info("User found for login: {}", mobile);
 
         if (user.getStatus() != UserStatus.ACTIVE) {
