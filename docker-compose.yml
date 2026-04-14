@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  finflow-app:
+    build: .
+    ports:
+      - "8096:8096"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: unless-stopped
