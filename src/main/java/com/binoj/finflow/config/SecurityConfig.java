@@ -25,7 +25,9 @@ public class SecurityConfig {
                                 "/api/register",
                                 "/api/verify-otp",
                                 "/api/login",
-                                "/h2-console/**"
+                                "/h2-console/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
