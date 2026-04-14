@@ -28,6 +28,9 @@ public class Transaction {
 
     private LocalDateTime timestamp;
 
+    @Column(unique = true, nullable = false)
+    private String idempotencyKey;
+
     @PrePersist
     public void prePersist() {
         this.timestamp = LocalDateTime.now();

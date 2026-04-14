@@ -2,6 +2,7 @@ package com.binoj.finflow.dto;
 
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -17,5 +18,7 @@ public class TransferRequest {
     private Long receiverId;
     @DecimalMin("1.0")
     private BigDecimal amount;
+    @NotBlank
+    private String idempotencyKey;
 
 }

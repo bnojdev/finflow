@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -31,6 +32,15 @@ public class TransactionServiceImpl implements TransactionService {
     public String transfer(TransferRequest transferRequest) {
         log.info("Initiating transfer from sender {} to receiver {} for amount {}", transferRequest.getSenderId(), transferRequest.getReceiverId(), transferRequest.getAmount());
 
+        String idempotencyKey = transferRequest.getIdempotencyKey();
+        if (idempotencyKey != null) {
+            Optional<Transaction> existingTxn = transactionRepository.findByIdempotencyKey(idempotencyKey);
+            if (existingTxn.isPresent()) {
+                log.info("Idempotent transfer detected, returning success for key: {}", idempotencyKey);
+                return "Transfer successful";
+            }
+        }
+
         Long senderId = transferRequest.getSenderId();
         Long receiverId = transferRequest.getReceiverId();
         BigDecimal amount = transferRequest.getAmount();
@@ -44,7 +54,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (sender.getBalance().compareTo(amount) < 0) {
             log.warn("Insufficient balance for sender {}", senderId);
-            throw new BadRequestException("Insufficient balance");
+            throw new RuntimeException("Insufficient balance");
         }
 
         sender.setBalance(sender.getBalance().subtract(amount));
@@ -58,6 +68,7 @@ public class TransactionServiceImpl implements TransactionService {
         txn.setSenderId(senderId);
         txn.setReceiverId(receiverId);
         txn.setAmount(amount);
+        txn.setIdempotencyKey(idempotencyKey);
 
         transactionRepository.save(txn);
         log.info("Transaction recorded successfully");
