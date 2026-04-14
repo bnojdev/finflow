@@ -16,9 +16,11 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtFilter(JwtUtil jwtUtil) {
+    public JwtFilter(JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -34,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             log.debug("Extracted token: {}", token);
 
-            if (jwtUtil.validateToken(token)) {
+            if (jwtUtil.validateToken(token) && !tokenBlacklistService.isTokenBlacklisted(token)) {
                 String mobile = jwtUtil.extractMobile(token);
                 log.info("Valid token for mobile: {}", mobile);
 
@@ -42,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(mobile, null, null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                log.warn("Invalid token");
+                log.warn("Invalid or blacklisted token");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }

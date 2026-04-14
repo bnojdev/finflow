@@ -2,6 +2,7 @@ package com.binoj.finflow.controller;
 
 import com.binoj.finflow.dto.ApiResponse;
 import com.binoj.finflow.entity.User;
+import com.binoj.finflow.security.TokenBlacklistService;
 import com.binoj.finflow.service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, TokenBlacklistService tokenBlacklistService) {
         this.userService = userService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @PostMapping(value = "/register", consumes = "application/json")
@@ -31,10 +34,13 @@ public class UserController {
     }
 
     @PostMapping("/verify-otp")
-    public String verifyOtp(@RequestParam String mobile,
+    public ResponseEntity<ApiResponse<?>> verifyOtp(@RequestParam String mobile,
                             @RequestParam String otp) {
         log.info("OTP verification request for mobile {}", mobile);
-        return userService.verifyOtp(mobile, otp);
+        String msg = userService.verifyOtp(mobile, otp);
+        return ResponseEntity.ok(
+                new ApiResponse<>(200, msg, null)
+        );
     }
 
     @PostMapping("/login")
@@ -44,5 +50,17 @@ public class UserController {
         return ResponseEntity.ok(
                 new ApiResponse<>(200, "Login successful", token)
         );
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<?>> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenBlacklistService.blacklistToken(token);
+            log.info("Token blacklisted for logout");
+            return ResponseEntity.ok(new ApiResponse<>(200, "Logged out successfully", null));
+        } else {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Invalid token", null));
+        }
     }
 }
