@@ -12,11 +12,18 @@ COPY pom.xml .
 # Copy source code
 COPY src ./src
 
+# Copy override files
+COPY application-override.properties /app/config/application-override.properties
+COPY logback-spring.xml /app/logback-spring.xml
+
 # Build the application
 RUN ./mvnw clean package -DskipTests
 
 # Create data directory for H2
 RUN mkdir -p /app/data
+
+# Create logs directory
+RUN mkdir -p /app/logs
 
 # Expose port
 EXPOSE 8096

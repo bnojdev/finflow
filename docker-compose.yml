@@ -4,7 +4,12 @@ services:
   finflow-app:
     build: .
     ports:
-      - "8096:8096"
+      - "8096:9090"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=/app/config/application-override.properties
+    volumes:
+      - ./application-override.properties:/app/config/application-override.properties
+      - ./logback-spring.xml:/app/logback-spring.xml
+      - ./logs:/app/logs
     restart: unless-stopped
